@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
@@ -112,7 +113,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     handler.post(new CustomRunnable(adapter.getItem(i), imageUrl, adapter));
                 }
             case R.id.buttonHTM:
-
+                HandlerThread msgHandlerThread = new HandlerThread("MessageHandlerThread");
+                msgHandlerThread.start();
+                Looper looper = msgHandlerThread.getLooper();
+                Handler msgHandler = new Handler(looper){
+                    @Override
+                    public void handleMessage(Message msg){
+                        switch(msg.what) {
+                            case 1:
+                                Log.d("Handler HTM", "Update de l'image de " + msg.obj);
+                                break;
+                            default:
+                                Log.d("Handler HTM", "Aucun message");
+                                break;
+                        }
+                    }
+                };
+                for(int i = 0; i<adapter.getCount();i++){
+                    Message msg = Message.obtain();
+                    msg.what = 1;
+                    msg.obj = adapter.getItem(i).getName();
+                    msgHandler.sendMessage(msg);
+                    msgHandler.post(new CustomRunnable(adapter.getItem(i),imageUrl,adapter));
+                }
         }
         listView.setAdapter(adapter);
     }
@@ -127,62 +150,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return null;
         }
     }
-    class CustomRunnable implements Runnable {
-        private Film film;
-        private String url;
-        private CustomFilmsAdapter adapter;
 
-        public CustomRunnable(Film film, String url, CustomFilmsAdapter adapter) {
-            this.film = film;
-            this.url = url;
-            this.adapter = adapter;
-        }
 
-        public void run(){
-            film.setImage(url);
-            adapter.notifyDataSetChanged();
-        }
 
-    }
 
-    class MyThread implements Runnable {
-        private Film film;
-        private String url;
-        private CustomFilmsAdapter adapter;
-        public MyThread(Film f, String u, CustomFilmsAdapter a) {
-            this.film = f;
-            this.url = u;
-            this.adapter = a;
-        }
-        public void run() {
-            film.setImage(url);
-            new Handler(Looper.getMainLooper()).post(() ->
-            {
-                adapter.notifyDataSetChanged();
-            });
-        }
-    }
 
-    class MyThreadWR implements Runnable {
-        private Film film;
-        private String url;
-        private WeakReference<CustomFilmsAdapter> adapter;
-
-        public MyThreadWR(Film film, String url, CustomFilmsAdapter adapter) {
-            this.film = film;
-            this.url = url;
-            this.adapter = new WeakReference<>(adapter);
-        }
-        @Override
-        public void run() {
-            film.setImage(url);
-            Handler h = new Handler(Looper.getMainLooper());
-            h.post(() -> {
-                if(adapter.get() != null){
-                    CustomFilmsAdapter customAdapter = adapter.get();
-                    customAdapter.notifyDataSetChanged();
-                }
-            });
-        }
-    }
 }
