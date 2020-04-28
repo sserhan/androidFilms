@@ -5,14 +5,19 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
+import android.os.Message;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.xml.transform.Result;
 
@@ -20,6 +25,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     ListView listView;
     CustomFilmsAdapter adapter;
+    private static final String imageUrl = "https://i.picsum.photos/id/670/200/200.jpg";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +43,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         buttonAtskExec.setOnClickListener(this);
         Button buttonThreads = findViewById(R.id.buttonThread);
         buttonThreads.setOnClickListener(this);
+        Button buttonExecutor = findViewById(R.id.buttonExexcutor);
+        buttonExecutor.setOnClickListener(this);
+        Button buttonExecWR = findViewById(R.id.buttonExecWR);
+        buttonExecWR.setOnClickListener(this);
+        Button buttonHTR = findViewById(R.id.buttonHTR);
+        buttonHTR.setOnClickListener(this);
+        Button buttonHTM = findViewById(R.id.buttonHTM);
+        buttonHTM.setOnClickListener(this);
         initAdapter();
     }
 
@@ -73,24 +87,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             // Lancement d'une AsyncTask avec le pool THREAD_POOL_EXECUTOR
             case R.id.buttonAtskExec:
                 new MyAsyncTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            //Lancement avec un Thread
             case R.id.buttonThread:
                 Handler h = new Handler(Looper.getMainLooper());
-                h.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        for(int i=0;i<adapter.getCount();i++){
-                            adapter.getItem(i).setImage("https://i.picsum.photos/id/670/200/200.jpg");
-                        }
-                        adapter.notifyDataSetChanged();
-                    }
-                });
+                for(int i = 0; i<adapter.getCount();i++) {
+                    h.post(new CustomRunnable(adapter.getItem(i),imageUrl,adapter));
+                }
+            // Lancement avec une Thread dans un pool de 5
+            case R.id.buttonExexcutor:
+                ExecutorService pool = Executors.newFixedThreadPool(5);
+                for(int i = 0; i<adapter.getCount();i++){
+                    pool.execute(new MyThread(adapter.getItem(i),imageUrl,adapter));
+                }
+            case R.id.buttonExecWR:
+                ExecutorService pool2 = Executors.newFixedThreadPool(5);
+                for(int i = 0; i<adapter.getCount();i++){
+                    pool2.execute(new MyThreadWR(adapter.getItem(i),imageUrl,adapter));
+                }
+            case R.id.buttonHTR:
+                HandlerThread handlerThread = new HandlerThread("myHandlerThread");
+                handlerThread.start();
+                Handler handler = new Handler(handlerThread.getLooper());
+                for(int i = 0; i<adapter.getCount();i++){
+                    handler.post(new CustomRunnable(adapter.getItem(i), imageUrl, adapter));
+                }
+            case R.id.buttonHTM:
 
         }
         listView.setAdapter(adapter);
     }
 
     public class MyAsyncTask extends AsyncTask<Void, Void,Void> {
-
         @Override
         protected Void doInBackground(Void... voids) {
             for(int i=0;i<adapter.getCount();i++){
@@ -99,9 +126,63 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             adapter.notifyDataSetChanged();
             return null;
         }
+    }
+    class CustomRunnable implements Runnable {
+        private Film film;
+        private String url;
+        private CustomFilmsAdapter adapter;
+
+        public CustomRunnable(Film film, String url, CustomFilmsAdapter adapter) {
+            this.film = film;
+            this.url = url;
+            this.adapter = adapter;
+        }
+
+        public void run(){
+            film.setImage(url);
+            adapter.notifyDataSetChanged();
+        }
 
     }
 
+    class MyThread implements Runnable {
+        private Film film;
+        private String url;
+        private CustomFilmsAdapter adapter;
+        public MyThread(Film f, String u, CustomFilmsAdapter a) {
+            this.film = f;
+            this.url = u;
+            this.adapter = a;
+        }
+        public void run() {
+            film.setImage(url);
+            new Handler(Looper.getMainLooper()).post(() ->
+            {
+                adapter.notifyDataSetChanged();
+            });
+        }
+    }
 
+    class MyThreadWR implements Runnable {
+        private Film film;
+        private String url;
+        private WeakReference<CustomFilmsAdapter> adapter;
 
+        public MyThreadWR(Film film, String url, CustomFilmsAdapter adapter) {
+            this.film = film;
+            this.url = url;
+            this.adapter = new WeakReference<>(adapter);
+        }
+        @Override
+        public void run() {
+            film.setImage(url);
+            Handler h = new Handler(Looper.getMainLooper());
+            h.post(() -> {
+                if(adapter.get() != null){
+                    CustomFilmsAdapter customAdapter = adapter.get();
+                    customAdapter.notifyDataSetChanged();
+                }
+            });
+        }
+    }
 }

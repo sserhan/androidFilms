@@ -45,11 +45,36 @@
             android:layout_height="wrap_content"
             android:id="@+id/buttonThread"
             android:text="Threads"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/buttonExexcutor"
+            android:text="Executor"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/buttonExecWR"
+            android:text="ExecWR"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="140dp">
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/buttonHTR"
+            android:text="HT-R"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/buttonHTM"
+            android:text="HT-M"/>
     </LinearLayout>
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:layout_marginTop="140dp"
+        android:layout_marginTop="210dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true">
     <ListView
