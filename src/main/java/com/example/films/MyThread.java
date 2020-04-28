@@ -3,6 +3,9 @@ package com.example.films;
 import android.os.Handler;
 import android.os.Looper;
 
+/**
+ * Thread mettant à jour l'image d'un film en utilisant un Handler
+ */
 public class MyThread implements Runnable {
     private Film film;
     private String url;

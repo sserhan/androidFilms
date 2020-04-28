@@ -5,6 +5,9 @@ import android.os.Looper;
 
 import java.lang.ref.WeakReference;
 
+/**
+ * Thread mettant à jour l'image d'un film en utilisant une Weak References
+ */
 public class MyThreadWR implements Runnable {
     private Film film;
     private String url;

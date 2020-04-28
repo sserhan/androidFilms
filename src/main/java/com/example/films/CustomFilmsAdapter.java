@@ -12,6 +12,9 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
+/**
+ * Custom Adapter qui permet le remplissage de la de la View contenant la liste de films
+ */
 public class CustomFilmsAdapter extends ArrayAdapter<Film> {
     public CustomFilmsAdapter(Context context, ArrayList<Film> films) {
         super(context, 0, films);

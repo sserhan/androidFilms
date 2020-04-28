@@ -1,8 +1,12 @@
 package com.example.films;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class Film {
+/**
+ * Entité FIlm
+ */
+public class Film implements Serializable {
 
     private String image;
     private String name;
